@@ -103,14 +103,43 @@ class UserController extends Controller
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
-            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
+            try {
+                // Ensure avatars directory exists
+                $avatarsPath = storage_path('app/public/avatars');
+                if (!file_exists($avatarsPath)) {
+                    if (!mkdir($avatarsPath, 0755, true)) {
+                        \Log::error('Failed to create avatars directory', ['path' => $avatarsPath]);
+                        return back()->withErrors(['avatar' => 'خطا در ایجاد پوشه آپلود. لطفاً با مدیر سیستم تماس بگیرید.'])->withInput();
+                    }
+                }
+                
+                // Check if directory is writable
+                if (!is_writable($avatarsPath)) {
+                    \Log::error('Avatars directory is not writable', ['path' => $avatarsPath]);
+                    return back()->withErrors(['avatar' => 'پوشه آپلود قابل نوشتن نیست. لطفاً مجوزهای پوشه storage را بررسی کنید.'])->withInput();
+                }
+                
+                // Delete old avatar if exists
+                if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
 
-            // Store new avatar
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = $avatarPath;
+                // Store new avatar
+                $avatarPath = $request->file('avatar')->store('avatars', 'public');
+                
+                if (!$avatarPath) {
+                    \Log::error('Failed to save avatar file', ['user_id' => $user->id]);
+                    return back()->withErrors(['avatar' => 'خطا در ذخیره تصویر. لطفاً مجوزهای پوشه storage را بررسی کنید.'])->withInput();
+                }
+                
+                $validated['avatar'] = $avatarPath;
+            } catch (\Exception $e) {
+                \Log::error('Error uploading avatar', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+                return back()->withErrors(['avatar' => 'خطا در آپلود تصویر: ' . $e->getMessage()])->withInput();
+            }
         }
 
         $user->update($validated);

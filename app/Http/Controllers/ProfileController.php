@@ -47,48 +47,86 @@ class ProfileController extends Controller
      */
     public function updateAvatar(Request $request): JsonResponse
     {
-        $request->validate([
-            'avatar' => 'required|string', // base64 encoded image
-        ]);
+        try {
+            $request->validate([
+                'avatar' => 'required|string', // base64 encoded image
+            ]);
 
-        $user = $request->user();
-        
-        // Decode base64 image
-        $imageData = $request->input('avatar');
-        
-        // Remove data:image/png;base64, or similar prefix
-        if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
-            $imageData = substr($imageData, strpos($imageData, ',') + 1);
-            $imageType = $matches[1];
-        } else {
-            return response()->json(['error' => 'فرمت تصویر نامعتبر است'], 422);
+            $user = $request->user();
+            
+            // Decode base64 image
+            $imageData = $request->input('avatar');
+            
+            // Remove data:image/png;base64, or similar prefix
+            if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                $imageType = $matches[1];
+            } else {
+                return response()->json(['error' => 'فرمت تصویر نامعتبر است'], 422);
+            }
+            
+            $imageData = base64_decode($imageData);
+            
+            if ($imageData === false) {
+                return response()->json(['error' => 'خطا در پردازش تصویر'], 422);
+            }
+            
+            // Ensure avatars directory exists
+            $avatarsPath = storage_path('app/public/avatars');
+            if (!file_exists($avatarsPath)) {
+                if (!mkdir($avatarsPath, 0755, true)) {
+                    \Log::error('Failed to create avatars directory', ['path' => $avatarsPath]);
+                    return response()->json(['error' => 'خطا در ایجاد پوشه آپلود. لطفاً با مدیر سیستم تماس بگیرید.'], 500);
+                }
+            }
+            
+            // Check if directory is writable
+            if (!is_writable($avatarsPath)) {
+                \Log::error('Avatars directory is not writable', ['path' => $avatarsPath, 'permissions' => substr(sprintf('%o', fileperms($avatarsPath)), -4)]);
+                return response()->json(['error' => 'پوشه آپلود قابل نوشتن نیست. لطفاً مجوزهای پوشه storage را بررسی کنید.'], 500);
+            }
+            
+            // Generate unique filename
+            $filename = 'avatars/' . $user->id . '_' . time() . '.' . $imageType;
+            
+            // Delete old avatar if exists
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            
+            // Save new avatar
+            $saved = Storage::disk('public')->put($filename, $imageData);
+            
+            if (!$saved) {
+                \Log::error('Failed to save avatar file', ['filename' => $filename, 'user_id' => $user->id]);
+                return response()->json(['error' => 'خطا در ذخیره تصویر. لطفاً مجوزهای پوشه storage را بررسی کنید.'], 500);
+            }
+            
+            // Verify file was actually saved
+            if (!Storage::disk('public')->exists($filename)) {
+                \Log::error('Avatar file was not saved', ['filename' => $filename, 'user_id' => $user->id]);
+                return response()->json(['error' => 'تصویر ذخیره نشد. لطفاً مجوزهای پوشه storage را بررسی کنید.'], 500);
+            }
+            
+            // Update user avatar
+            $user->avatar = $filename;
+            $user->save();
+            
+            return response()->json([
+                'success' => true,
+                'avatar_url' => asset('storage/' . $filename),
+                'message' => 'تصویر پروفایل با موفقیت به‌روزرسانی شد'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating avatar', [
+                'user_id' => $request->user()->id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'خطا در آپلود تصویر: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $imageData = base64_decode($imageData);
-        
-        if ($imageData === false) {
-            return response()->json(['error' => 'خطا در پردازش تصویر'], 422);
-        }
-        
-        // Generate unique filename
-        $filename = 'avatars/' . $user->id . '_' . time() . '.' . $imageType;
-        
-        // Delete old avatar if exists
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-        
-        // Save new avatar
-        Storage::disk('public')->put($filename, $imageData);
-        
-        // Update user avatar
-        $user->avatar = $filename;
-        $user->save();
-        
-        return response()->json([
-            'success' => true,
-            'avatar_url' => asset('storage/' . $filename),
-            'message' => 'تصویر پروفایل با موفقیت به‌روزرسانی شد'
-        ]);
     }
 }
