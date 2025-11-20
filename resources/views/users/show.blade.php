@@ -1,6 +1,26 @@
 <x-app-layout>
     <div class="py-8" dir="rtl">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Success Message -->
+            @if(session('success'))
+                <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center gap-3">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm">{{ session('success') }}</span>
+                </div>
+            @endif
+
+            <!-- Error Message -->
+            @if(session('error'))
+                <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm">{{ session('error') }}</span>
+                </div>
+            @endif
+
             <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 <!-- Header with Avatar -->
                 <div class="bg-gradient-to-br from-primary to-primary/80 p-8 text-center">
@@ -65,24 +85,37 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="p-6 bg-gray-50 border-t border-gray-200 flex gap-3">
-                    <a href="{{ route('users.edit', $user) }}" 
-                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all border border-primary font-medium">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                        <span class="text-sm">ویرایش کاربر</span>
-                    </a>
-                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="flex-1"
-                          onsubmit="return confirm('آیا از حذف این کاربر اطمینان دارید؟');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" 
-                                class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-red-600 rounded-lg hover:bg-red-50 transition-all border border-gray-200 hover:border-red-200 font-medium">
+                <div class="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
+                    <div class="flex gap-3">
+                        <a href="{{ route('users.edit', $user) }}" 
+                           class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all border border-primary font-medium">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
-                            <span class="text-sm">حذف کاربر</span>
+                            <span class="text-sm">ویرایش کاربر</span>
+                        </a>
+                        <form action="{{ route('users.destroy', $user) }}" method="POST" class="flex-1"
+                              onsubmit="return confirm('آیا از حذف این کاربر اطمینان دارید؟');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" 
+                                    class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-red-600 rounded-lg hover:bg-red-50 transition-all border border-gray-200 hover:border-red-200 font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span class="text-sm">حذف کاربر</span>
+                            </button>
+                        </form>
+                    </div>
+                    <form action="{{ route('users.send-new-password', $user) }}" method="POST" class="w-full"
+                          onsubmit="return confirm('آیا از ارسال کلمه عبور جدید برای این کاربر اطمینان دارید؟');">
+                        @csrf
+                        <button type="submit" 
+                                class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all border border-green-600 font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            <span class="text-sm">ارسال کلمه عبور جدید</span>
                         </button>
                     </form>
                 </div>

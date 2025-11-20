@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     
     // User Management Routes
     Route::resource('users', UserController::class);
+    Route::post('users/{user}/send-new-password', [UserController::class, 'sendNewPassword'])->name('users.send-new-password');
     
     // Customer Management Routes
     Route::resource('customers', CustomerController::class);

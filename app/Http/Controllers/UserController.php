@@ -156,5 +156,46 @@ class UserController extends Controller
 
         return redirect()->route('users.index')->with('success', 'کاربر با موفقیت حذف شد');
     }
+
+    /**
+     * Send new password to user via SMS
+     */
+    public function sendNewPassword(User $user, IPPanelService $smsService)
+    {
+        // Generate a random password
+        $newPassword = \Illuminate\Support\Str::random(8);
+        
+        // Update user password
+        $user->update([
+            'password' => bcrypt($newPassword)
+        ]);
+
+        // Send SMS with new password
+        try {
+            $smsSent = $smsService->sendNewPasswordSMS(
+                $user->mobile,
+                $user->name,
+                $newPassword
+            );
+            
+            if ($smsSent) {
+                return redirect()->route('users.show', $user)->with('success', 'کلمه عبور جدید ایجاد شد و از طریق پیامک ارسال گردید');
+            } else {
+                \Log::warning('Failed to send new password SMS', [
+                    'user_id' => $user->id,
+                    'mobile' => $user->mobile
+                ]);
+                
+                return redirect()->route('users.show', $user)->with('error', 'کلمه عبور جدید ایجاد شد اما ارسال پیامک با خطا مواجه شد. لطفاً کلمه عبور را به صورت دستی به کاربر اطلاع دهید.');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send new password SMS', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return redirect()->route('users.show', $user)->with('error', 'کلمه عبور جدید ایجاد شد اما ارسال پیامک با خطا مواجه شد. لطفاً کلمه عبور را به صورت دستی به کاربر اطلاع دهید.');
+        }
+    }
 }
 

@@ -197,6 +197,25 @@ class IPPanelService
     }
 
     /**
+     * Send new password SMS
+     *
+     * @param string $mobile
+     * @param string $name
+     * @param string $password
+     * @return bool
+     */
+    public function sendNewPasswordSMS(string $mobile, string $name, string $password): bool
+    {
+        $message = "کارمانیا توسعه\n\n";
+        $message .= "کاربر گرامی {$name}\n\n";
+        $message .= "رمز عبور جدید شما: {$password}\n\n";
+        $message .= "لطفاً رمز عبور خود را پس از ورود تغییر دهید.";
+
+        $result = $this->sendSMS('password_reset', $mobile, $message);
+        return $result['success'];
+    }
+
+    /**
      * Format mobile number to E.164 format
      *
      * @param string $mobile

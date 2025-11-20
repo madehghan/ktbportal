@@ -371,15 +371,15 @@
                         <!-- User Info with Avatar -->
                         <div class="flex items-center gap-3 mb-3">
                             <a href="{{ route('profile.edit') }}" class="block flex-shrink-0">
-                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all cursor-pointer shadow-md hover:shadow-lg">
+                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all cursor-pointer shadow-md hover:shadow-lg relative">
+                                    <div class="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                                        <span class="text-white font-bold text-sm">{{ mb_substr(Auth::user()->name, 0, 2) }}</span>
+                                    </div>
                                     @if(Auth::user()->avatar)
                                         <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
                                              alt="{{ Auth::user()->name }}" 
-                                             class="w-full h-full object-cover">
-                                    @else
-                                        <div class="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                                            <span class="text-white font-bold text-sm">{{ mb_substr(Auth::user()->name, 0, 2) }}</span>
-                                        </div>
+                                             class="w-full h-full object-cover absolute inset-0"
+                                             onerror="this.style.display='none';">
                                     @endif
                                 </div>
                             </a>
@@ -407,10 +407,10 @@
             <div class="lg:mr-64">
                 <!-- Fixed Header -->
                 <header class="fixed top-0 left-0 right-0 lg:right-64 bg-white border-b border-gray-200 z-30 shadow-sm">
-                    <div class="px-4 sm:px-6 lg:px-8">
-                        <div class="flex items-center justify-between h-16">
-                            <!-- Left Side - Logo/Brand (Mobile) -->
-                            <div class="flex items-center gap-3 lg:hidden">
+                    <div class="px-4 sm:px-6 lg:px-8 relative">
+                        <div class="flex items-center justify-end h-16 lg:justify-between">
+                            <!-- Center - Logo/Brand (Mobile) -->
+                            <div class="absolute left-1/2 transform -translate-x-1/2 lg:hidden">
                                 @if(file_exists(public_path('images/logo.png')))
                                     <img src="{{ asset('images/logo.png') }}" alt="کارمانیا توسعه" class="h-8 w-8">
                                 @else
@@ -420,10 +420,6 @@
                                         </svg>
                                     </div>
                                 @endif
-                                <div>
-                                    <h2 class="text-sm font-bold text-gray-900">کارمانیا توسعه</h2>
-                                    <p class="text-xs text-gray-500">سامانه داخلی شرکت</p>
-                                </div>
                             </div>
                             
                             <!-- Center - Page Title (Desktop) -->
@@ -451,15 +447,15 @@
                                 <div class="relative" x-data="{ open: false }">
                                     <button @click="open = !open" 
                                             class="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition">
-                                        <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20">
+                                        <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20 relative">
+                                            <div class="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                                                <span class="text-white font-bold text-xs">{{ mb_substr(Auth::user()->name, 0, 2) }}</span>
+                                            </div>
                                             @if(Auth::user()->avatar)
                                                 <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
                                                      alt="{{ Auth::user()->name }}" 
-                                                     class="w-full h-full object-cover">
-                                            @else
-                                                <div class="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                                                    <span class="text-white font-bold text-xs">{{ mb_substr(Auth::user()->name, 0, 2) }}</span>
-                                                </div>
+                                                     class="w-full h-full object-cover absolute inset-0"
+                                                     onerror="this.style.display='none';">
                                             @endif
                                         </div>
                                         <div class="hidden lg:block text-right">
